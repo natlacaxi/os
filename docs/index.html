@@ -96,6 +96,11 @@ button.pill{border:0;border-radius:20px;padding:10px 16px;background:var(--acc);
 #dg span{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nowd .wd,.nosp .sp{display:none}.nodt #dots{display:none}.noaur #os::before{display:none}
 .hc{--line:#777}.hc .row{outline:1.5px solid var(--line)}
+#off{position:absolute;inset:0;background:#000;z-index:120;opacity:0;pointer-events:none;transition:opacity .35s}
+#off.on{opacity:1;pointer-events:auto}
+.lowT *,.saver *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.saver *{transition:none!important;animation:none!important}.saver #os::before{display:none}
+.nold #ld{display:none}
 #toast{position:absolute;top:50px;left:50%;transform:translate(-50%,-80px);background:var(--card);color:var(--appfg);padding:10px 18px;border-radius:20px;z-index:80;transition:transform .3s;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 #toast.on{transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -123,7 +128,7 @@ button.pill{border:0;border-radius:20px;padding:10px 16px;background:var(--acc);
     <input class="in" id="in-u" placeholder="https://tonpseudo.github.io/mon-app/" inputmode="url">
     <button class="pill" id="in-b">Installer</button>
     <h3 style="margin:24px 0 10px">Apps installées</h3><div id="inst"></div>
-    <div class="row"><span>MiniOS</span><span style="opacity:.6">v5.0</span></div></div>
+    <div class="row"><span>MiniOS</span><span style="opacity:.6">v6.0</span></div></div>
   </div></section>
   <section class="win" id="w-web"><header id="wt">App</header><div class="body" style="padding:0 0 28px"><iframe id="fr" style="width:100%;height:100%;border:0" allow="autoplay; fullscreen"></iframe></div></section>
   <section class="win" id="w-about"><header>À propos</header><div class="body">
@@ -134,12 +139,14 @@ button.pill{border:0;border-radius:20px;padding:10px 16px;background:var(--acc);
   <div id="lock"><div id="lt">--:--</div><div id="ld"></div><div id="lh">Touche ou glisse vers le haut</div></div>
   <div id="qs"><div class="qg" id="qg"></div><label style="display:block;margin:16px 0 4px">Luminosité</label><input type="range" id="br" min="30" max="100" value="100" style="width:100%"></div>
   <div id="isl"></div><div id="spot"><input class="in" id="sq" placeholder="Rechercher une app"><div id="sr"></div></div>
-  <div id="edge"></div><div id="rec"></div><div id="dim"></div>
+  <div id="edge"></div><div id="rec"></div><div id="dim"></div><div id="off"></div>
   <button id="bar" aria-label="Accueil"></button>
   <div id="toast"></div>
 </div>
 <script>
+window.onerror=function(m,u,l){var d=document.getElementById('err');if(!d){d=document.createElement('div');d.id='err';d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:999;background:#b00;color:#fff;font:12px monospace;padding:8px;max-height:30vh;overflow:auto';document.body.appendChild(d)}d.textContent+=m+' (ligne '+l+') '};
 const $=s=>document.querySelector(s), os=$('#os');
+const root=document.documentElement;
 const apps=[
  {id:'calc',n:'Calcul',e:'🧮',c:'#ff9f0a'},
  {id:'notes',n:'Notes',e:'📝',c:'#f5c842'},
@@ -154,7 +161,7 @@ const save=()=>{try{localStorage.setItem('minios-apps',JSON.stringify(custom))}c
 function render(){
  pages();
  $('#dock').innerHTML='';['siri','notes','droid','set'].forEach(id=>$('#dock').append(mk(apps.find(a=>a.id===id))));
- const l=$('#inst');l.innerHTML='';
+ const l=ib.querySelector('#inst');l.innerHTML='';
  custom.forEach((a,i)=>{const r=document.createElement('div');r.className='row';r.innerHTML=`<span>${esc(a.e)} ${esc(a.n)}</span>`;
   const b=document.createElement('button');b.className='pill';b.style.background='#d33';b.textContent='Supprimer';
   b.onclick=()=>{custom.splice(i,1);save();render()};r.append(b);l.append(r)});
@@ -166,7 +173,7 @@ $('#in-b').onclick=()=>{
  custom.push({id:'w'+Date.now(),n,e,u,c:'#4a5568'});save();render();
  $('#in-n').value=$('#in-e').value=$('#in-u').value='';toast(n+' installée');
 };
-/* v5.0 : nouvelles apps, verrouillage, réglages rapides, multitâche */
+/* v6.0 : nouvelles apps, verrouillage, réglages rapides, multitâche */
 apps.push({id:'nav',n:'Navigateur',e:'🌍',c:'#0a84ff'},{id:'paint',n:'Dessin',e:'🎨',c:'#ff375f'},{id:'snake',n:'Snake',e:'🐍',c:'#30d158'},{id:'siri',n:'Siri',e:'✨',c:'linear-gradient(135deg,#7c3aed,#ec4899)'},{id:'droid',n:'Android',e:'🤖',c:'#3ddc84'});
 function win(id,t,h){const s=document.createElement('section');s.className='win';s.id='w-'+id;s.innerHTML=`<header>${t}</header><div class="body">${h}</div>`;os.append(s)}
 win('nav','Navigateur',`<div style="display:flex;gap:8px;margin-bottom:10px"><input class="in" id="nu" placeholder="https://..." style="margin:0"><button class="pill" id="ng">Aller</button></div><iframe id="nf" style="width:100%;height:60vh;border:1px solid var(--line);border-radius:14px;background:#fff"></iframe><p style="opacity:.6;font-size:13px">Certains sites interdisent l’affichage dans un cadre.</p>`);
@@ -211,7 +218,7 @@ function showRec(){const r=$('#rec');r.innerHTML='';r.classList.add('on');
   c.onclick=e=>{r.classList.remove('on');if(e.target.tagName==='U'){opened.splice(opened.indexOf(id),1);if(cur&&cur.id==='w-'+id)closeApp()}else openApp(id)};r.append(c)})}
 $('#rec').onclick=e=>{if(e.target.id==='rec')e.target.classList.remove('on')};
 
-/* v5.0 : recherche, îlot, vibrations */
+/* v6.0 : recherche, îlot, vibrations */
 function isl(id){const a=apps.find(x=>x.id===id),e=$('#isl');e.textContent=a?a.e+' '+a.n:'🌐 '+$('#wt').textContent;e.classList.add('on');clearTimeout(isl.t);isl.t=setTimeout(()=>e.classList.remove('on'),1800)}
 function spot(q){const r=$('#sr');r.innerHTML='';[...apps,...custom,...droid.map(d=>({n:d.n,e:'📦',p:d.p,id:'d:'+d.p}))].filter(a=>a.n.toLowerCase().includes(q.toLowerCase())&&!(cfg.hide||[]).includes(a.id)).forEach(a=>{const b=mk(a),o=b.onclick;b.className='row';b.style.cssText='width:100%;border:0;color:var(--appfg);font-size:17px;font-family:inherit;cursor:pointer';b.innerHTML=`<span>${esc(a.e)} ${esc(a.n)}</span>`;b.onclick=()=>{$('#spot').classList.remove('on');o()};r.append(b)})}
 $('#home').addEventListener('click',e=>{if(e.target.closest('.sp')){$('#spot').classList.add('on');$('#sq').value='';spot('');$('#sq').focus()}});
@@ -219,10 +226,10 @@ $('#sq').oninput=e=>spot(e.target.value);
 $('#spot').onclick=e=>{if(e.target.id==='spot')e.currentTarget.classList.remove('on')};
 document.addEventListener('pointerdown',e=>{if(e.target.closest('button'))cfg.hap&&navigator.vibrate&&navigator.vibrate(8)});
 
-/* v5.0 : réglages complets, code PIN, aurore, batterie réelle */
-let cfg={acc:'#3b82f6',rad:16,blur:16,size:62,anim:1,hap:1,pin:'',theme:'auto',glass:29,tx:100,bold:0,hide:[],usage:{},wd:1,sp:1,dt:1,aurora:1,hc:0,h12:0,dnd:0};
+/* v6.0 : réglages complets, code PIN, aurore, batterie réelle */
+let cfg={acc:'#3b82f6',rad:16,blur:16,size:62,anim:1,hap:1,pin:'',theme:'auto',glass:29,tx:100,bold:0,hide:[],usage:{},wd:1,sp:1,dt:1,aurora:1,hc:0,h12:0,dnd:0,dtap:1,tapwake:1,auto:0,awake:0,snd:0,lowT:0,saver:0,secs:0,ld:1};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('minios-cfg')||'{}'))}catch(e){}
-function apply(){const r=root.style;r.setProperty('--acc',cfg.acc);r.setProperty('--rad',cfg.rad+'px');r.setProperty('--blur',cfg.blur+'px');r.setProperty('--glass','rgba(255,255,255,'+(.06+cfg.glass/100*.34).toFixed(2)+')');r.setProperty('--tx',cfg.tx/100);document.body.classList.toggle('bold',!!cfg.bold);{const bc=(c,on)=>document.body.classList.toggle(c,on);bc('nowd',!cfg.wd);bc('nosp',!cfg.sp);bc('nodt',!cfg.dt);bc('noaur',!cfg.aurora);bc('hc',!!cfg.hc);window.dnd=!!cfg.dnd;window.h12=!!cfg.h12}r.setProperty('--isz',cfg.size+'px');
+function apply(){const r=root.style;r.setProperty('--acc',cfg.acc);r.setProperty('--rad',cfg.rad+'px');r.setProperty('--blur',cfg.blur+'px');r.setProperty('--glass','rgba(255,255,255,'+(.06+cfg.glass/100*.34).toFixed(2)+')');r.setProperty('--tx',cfg.tx/100);document.body.classList.toggle('bold',!!cfg.bold);{const bc=(c,on)=>document.body.classList.toggle(c,on);bc('nowd',!cfg.wd);bc('nosp',!cfg.sp);bc('nodt',!cfg.dt);bc('noaur',!cfg.aurora);bc('hc',!!cfg.hc);bc('lowT',!!cfg.lowT);bc('saver',!!cfg.saver);bc('nold',!cfg.ld);window.secs=!!cfg.secs;window.dnd=!!cfg.dnd;window.h12=!!cfg.h12}r.setProperty('--isz',cfg.size+'px');
  if(cfg.bg1){os.style.setProperty('--bg1',cfg.bg1);os.style.setProperty('--bg2',cfg.bg2)}
  document.body.classList.toggle('noanim',!cfg.anim);
  if(cfg.theme&&cfg.theme!=='auto')root.dataset.theme=cfg.theme;else delete root.dataset.theme;
@@ -252,7 +259,7 @@ const stg=el('span');stg.style.opacity='.7';box.append(line('Données MiniOS',st
 navigator.storage&&navigator.storage.estimate&&navigator.storage.estimate().then(e=>{stg.textContent=Math.round(e.usage/1024)+' Ko'});
 box.append(head('Siri et recherche'));
 apps.forEach(a=>{const b=el('button','pill'),u=()=>{const on=!(cfg.hide||[]).includes(a.id);b.textContent=on?'Affichée':'Masquée';b.style.background=on?'var(--acc)':'#888'};u();b.onclick=()=>{cfg.hide=cfg.hide||[];const i=cfg.hide.indexOf(a.id);i>-1?cfg.hide.splice(i,1):cfg.hide.push(a.id);u();apply()};box.append(line(a.e+' '+a.n,b))});
-box.append(head('Général'),line('Mise à jour du logiciel',(()=>{const x=el('span');x.style.opacity='.7';x.textContent='MiniOS 5.0 · à jour';return x})()));
+box.append(head('Général'),line('Mise à jour du logiciel',(()=>{const x=el('span');x.style.opacity='.7';x.textContent='MiniOS 6.0 · à jour';return x})()));
 $('#w-set .body').prepend(box);
 navigator.getBattery&&navigator.getBattery().then(b=>{const u=()=>$('#status span:last-child').textContent='📶 🔋 '+Math.round(b.level*100)+' %';u();b.onlevelchange=u});
 // code PIN
@@ -266,7 +273,7 @@ pad.onclick=e=>{if(e.target.tagName!=='BUTTON')return;const k=e.target.textConte
  if(ent.length===4){if(ent===cfg.pin)unlockNow();else{toast('Code incorrect');ent='';setTimeout(()=>$('#pd').textContent='○○○○',300)}}};
 apply();
 
-/* v5.0 : Siri (assistant local) */
+/* v6.0 : Siri (assistant local) */
 win('siri','Siri',`<div id="sl" style="display:flex;flex-direction:column;gap:8px;min-height:50vh"></div><div style="display:flex;gap:8px;margin-top:14px"><input class="in" id="si" placeholder="Demande-moi quelque chose" style="margin:0"><button class="pill" id="ss2">Envoyer</button></div>`);
 const say=(t,me)=>{const d=el('div');d.textContent=t;d.style.cssText='padding:10px 14px;border-radius:18px;max-width:80%;align-self:'+(me?'flex-end;background:var(--acc);color:#fff':'flex-start;background:var(--card)');$('#sl').append(d);d.scrollIntoView&&d.scrollIntoView({block:'end'})};
 const reply=q=>{const s=q.toLowerCase();let m;{const x=androidCmd(s);if(x)return x}
@@ -283,7 +290,7 @@ const send=()=>{const v=$('#si').value.trim();if(!v)return;say(v,1);$('#si').val
 $('#ss2').onclick=send;$('#si').onkeydown=e=>{if(e.key==='Enter')send()};
 say('Salut ! Je comprends des commandes simples. Que veux-tu faire ?');
 
-/* v5.0 : pont Android, apps installées, pages */
+/* v6.0 : pont Android, apps installées, pages */
 const A=window.AndroidBridge;
 win('droid','Apps Android',`<input class="in" id="dq" placeholder="Rechercher une app"><div id="dg"></div>`);
 let droid=[];
@@ -312,7 +319,7 @@ function pages(){const h=$('#home');h.innerHTML='';const mkp=()=>{const p=el('di
 function dotsUpdate(){const h=$('#home'),n=Math.round(h.scrollLeft/(h.clientWidth||1));[...$('#dots').children].forEach((x,i)=>x.className=i===n?'on':'')}
 $('#home').addEventListener('scroll',dotsUpdate,{passive:true});
 
-/* v5.0 : Réglages façon iOS 27 (navigation par catégories) */
+/* v6.0 : Réglages façon iOS 27 (navigation par catégories) */
 const fmt=s=>s>=60?Math.floor(s/60)+' min':s+' s';
 const note=t=>{const p=el('p');p.style.cssText='opacity:.55;font-size:13px;margin:4px 4px 12px';p.textContent=t;return p};
 const btn=(t,f)=>{const b=el('button','pill');b.textContent=t;b.onclick=f;return b};
@@ -329,7 +336,7 @@ const P={
   return [line('Temps total',sp(fmt(u.reduce((s,x)=>s+x[1],0)))),...u.map(([k,v])=>{const a=apps.find(x=>'w-'+x.id===k)||{e:'🌐',n:'App web'};return line(a.e+' '+a.n,sp(fmt(v)))}),btn('Réinitialiser',()=>{cfg.usage={};apply();goP('tps')})]},
  gen:()=>{const st=sp('…');navigator.storage&&navigator.storage.estimate&&navigator.storage.estimate().then(e=>{st.textContent=Math.round(e.usage/1024)+' Ko'});
   let c=0;const rs=btn('Réinitialiser',()=>{if(!c){c=1;rs.textContent='Confirmer';rs.style.background='#d33';return}try{localStorage.clear()}catch(e){}location.reload()});
-  return [line('Version',sp('MiniOS 5.0')),line('Mise à jour du logiciel',btn('Vérifier',()=>{navigator.serviceWorker?navigator.serviceWorker.getRegistration().then(r=>{if(r)r.update();toast('Recherche lancée')}):toast('Mises à jour via la page web')})),line('Écran',sp(screen.width+'×'+screen.height+' @'+devicePixelRatio+'x')),line('Langue',sp(navigator.language)),line('Données MiniOS',st),line('Format 12 heures',tog('h12')),line('Transférer ou réinitialiser',rs)]},
+  return [line('Version',sp('MiniOS 6.0')),line('Mise à jour du logiciel',btn('Vérifier',()=>{navigator.serviceWorker?navigator.serviceWorker.getRegistration().then(r=>{if(r)r.update();toast('Recherche lancée')}):toast('Mises à jour via la page web')})),line('Écran',sp(screen.width+'×'+screen.height+' @'+devicePixelRatio+'x')),line('Langue',sp(navigator.language)),line('Données MiniOS',st),line('Format 12 heures',tog('h12')),line('Transférer ou réinitialiser',rs)]},
  aff:()=>[line('Thème',seg([['Auto','auto'],['Clair','light'],['Sombre','dark']],'theme')),line('Luminosité',sld(30,100,100,bright)),line('Couleur d’accent',sws(['#3b82f6','#ff375f','#30d158','#ff9f0a','#a855f7','#14b8a6'],'acc')),line('Verre liquide : clair ↔ teinté',rng(0,100,'glass')),line('Flou du verre',rng(0,40,'blur')),line('Taille du texte',rng(80,150,'tx')),line('Texte en gras',tog('bold'))],
  acc:()=>[line('Taille des icônes',rng(48,84,'size')),line('Arrondi des icônes',rng(8,31,'rad')),line('Widget horloge',tog('wd')),line('Barre Rechercher',tog('sp')),line('Points de pages',tog('dt'))],
  bg:()=>{const pre=el('span','sw');[['#1b2a4a','#6a3d7c'],['#0f4c5c','#e36414'],['#1d3b2a','#9bc53d'],['#2b2d42','#ef233c'],['#0b132b','#3a86ff'],['#3a0ca3','#f72585']].forEach(([a,b])=>{const x=el('button');x.style.background=`linear-gradient(135deg,${a},${b})`;x.onclick=()=>{cfg.bg1=a;cfg.bg2=b;apply()};pre.append(x)});
@@ -354,6 +361,28 @@ function goP(id){view.innerHTML='';$('#sbk').style.display=id?'':'none';$('#stt'
 $('#sbk').onclick=()=>goP(null);goP(null);
 let uc=0;setInterval(()=>{if(cur){cfg.usage=cfg.usage||{};cfg.usage[cur.id]=(cfg.usage[cur.id]||0)+1;if(++uc%15===0)apply()}},1000);
 
+/* v6.0 : double tap, veille, petits réglages */
+let asleep=false,lastT=0,lastX=0,lastY=0,lastAct=Date.now(),wl=null,kept=false,ac;
+function sleepNow(){if(asleep)return;asleep=true;$('#off').classList.add('on');if(A)A.setBrightness(5);closeApp();qs.classList.remove('on');$('#rec').classList.remove('on');$('#spot').classList.remove('on');$('#lock').classList.remove('off')}
+function wakeNow(){if(!asleep)return;asleep=false;lastAct=Date.now();$('#off').classList.remove('on');if(A)A.setBrightness(+$('#br').value)}
+os.addEventListener('pointerup',e=>{
+ if(asleep||!$('#lock').classList.contains('off')||!cfg.dtap)return;
+ if(e.target.closest('button,input,textarea,iframe,canvas,.row,.rc,#qs,#pad,#edge,#spot,#rec'))return;
+ const n=Date.now();if(n-lastT<320&&Math.abs(e.clientX-lastX)<40&&Math.abs(e.clientY-lastY)<40){lastT=0;sleepNow()}else{lastT=n;lastX=e.clientX;lastY=e.clientY}});
+{const off=$('#off');let t0=0;off.addEventListener('pointerup',()=>{if(cfg.tapwake)wakeNow();else{const n=Date.now();if(n-t0<320)wakeNow();t0=n}})}
+document.addEventListener('pointerdown',()=>{lastAct=Date.now()},true);
+document.addEventListener('pointerdown',e=>{if(cfg.snd&&e.target.closest('button')){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=900;g.gain.value=.04;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.03)}catch(x){}}});
+setInterval(()=>{
+ if(cfg.auto&&!asleep&&Date.now()-lastAct>cfg.auto*1000)sleepNow();
+ if(!!cfg.awake!==kept){kept=!!cfg.awake;if(A)A.keepAwake(kept);else if(kept&&navigator.wakeLock)navigator.wakeLock.request('screen').then(x=>{wl=x}).catch(()=>{});else if(!kept&&wl){wl.release();wl=null}}},1500);
+const o1=P.snd;P.snd=()=>[...o1(),line('Son des touches',tog('snd'))];
+const o2=P.acs;P.acs=()=>[...o2(),line('Réduire la transparence',tog('lowT'))];
+P.ecr=()=>[line('Double tap pour éteindre',tog('dtap')),line('Toucher pour réveiller',tog('tapwake')),line('Verrouillage auto',seg([['Jamais',0],['30 s',30],['1 min',60],['2 min',120],['5 min',300]],'auto')),line('Garder l’écran allumé',tog('awake')),btn('Éteindre l’écran maintenant',()=>setTimeout(sleepNow,300)),note('L’écran passe au noir et la luminosité baisse au minimum. Il ne s’éteint pas physiquement : Android garde la main sur la veille matérielle.')];
+P.lck=()=>[line('Afficher les secondes',tog('secs')),line('Afficher la date',tog('ld')),line('Code à 4 chiffres',pw)];
+P.eco=()=>[line('Économie d’énergie',tog('saver')),line('Réduire la transparence',tog('lowT')),note('Coupe animations, aurore et flou du verre.')];
+cats.splice(8,0,['💤','#5e5ce6','Écran et veille','ecr'],['🔒','#8e8e93','Écran de verrouillage','lck'],['⚡','#ff9f0a','Économie d’énergie','eco']);
+goP(null);
+
 render();
 let cur=null;
 const opened=[];
@@ -363,7 +392,7 @@ $('#bar').onclick=()=>{if(lp){lp=false;return}closeApp()};
 function toast(m){if(window.dnd)return;const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1600)}
 // horloge
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');
- const hm=(window.h12?p(d.getHours()%12||12):p(d.getHours()))+':'+p(d.getMinutes()),dt=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});$('#t').textContent=hm;$('#lt').textContent=hm;$('#ld').textContent=dt;if($('#wc')){$('#wc').textContent=hm;$('#wdt').textContent=dt}
+ const hm=(window.h12?p(d.getHours()%12||12):p(d.getHours()))+':'+p(d.getMinutes()),dt=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});$('#t').textContent=hm;$('#lt').textContent=hm+(window.secs?':'+p(d.getSeconds()):'');$('#ld').textContent=dt;if($('#wc')){$('#wc').textContent=hm;$('#wdt').textContent=dt}
  $('#clk').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
  $('#dat').textContent=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}
 tick();setInterval(tick,1000);
@@ -390,7 +419,7 @@ function eval1(s){try{const e=s.replace(/÷/g,'/').replace(/×/g,'*').replace(/�
 try{$('#note').value=localStorage.getItem('minios-note')||''}catch(e){}
 $('#note').oninput=e=>{try{localStorage.setItem('minios-note',e.target.value)}catch(x){}};
 // réglages
-const root=document.documentElement;
+
 $('#thm').onclick=()=>{const dark=root.dataset.theme==='dark'||(!root.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);root.dataset.theme=dark?'light':'dark';toast('Thème '+(dark?'clair':'sombre'))};
 [['#1b2a4a','#6a3d7c'],['#0f4c5c','#e36414'],['#1d3b2a','#9bc53d'],['#2b2d42','#ef233c']].forEach(([a,b])=>{
  const s=document.createElement('button');s.style.background=`linear-gradient(135deg,${a},${b})`;
